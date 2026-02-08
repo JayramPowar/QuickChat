@@ -7,7 +7,6 @@ import msgRouter from './routes/messageRoutes.js';
 
 const app = express();
 
-// Middlewares
 app.use(express.json({limit: "15mb"}));
 
 app.use(cors({
@@ -31,6 +30,7 @@ app.use(cors({
     allowedHeaders: ["Content-Type", "Authorization"]
 }));
 
+//  Connect to DB before each request
 app.use(async (req, res, next) => {
   try {
     await connectDB();
@@ -44,15 +44,10 @@ app.use(async (req, res, next) => {
   }
 });
 
-// API endpoints
+app.get("/", (req, res) => res.json({ success: true, message: "Backend is working!" }));
 app.get("/api/status", (req, res) => res.json({ success: true, message: "Server is live..." }));
 app.use("/api/auth", router);
 app.use("/api/messages", msgRouter);
-
-app.use((err, req, res, next) => {
-  console.error("Error:", err);
-  res.status(500).json({ success: false, message: err.message });
-});
 
 // For local development
 if (process.env.NODE_ENV !== 'production') {
