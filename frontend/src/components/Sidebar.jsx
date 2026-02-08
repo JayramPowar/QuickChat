@@ -15,9 +15,8 @@ const Sidebar = () => {
   } = useContext(ChatContext);
   const { logout, onlineUser } = useContext(AuthContext);
 
-  console.log("📊 unseenMessages:", unseenMessages); // ← ADD THIS
-
   const [input, setInput] = useState(false);
+  const [showMenu, setShowMenu] = useState(false); 
 
   const navigate = useNavigate();
 
@@ -38,24 +37,38 @@ const Sidebar = () => {
       <div className="pb-5">
         <div className="flex justify-between items-center">
           <img src={assets.logo} alt="logo" className="max-w-40" />
-          <div className="relative py-2 group">
+          
+          <div className="relative py-2">
             <img
               src={assets.menu_icon}
               alt="menu"
               className="max-h-5 cursor-pointer"
+              onClick={() => setShowMenu(!showMenu)} 
             />
-            <div className="absolute top-full right-0 z-20 w-32 p-5 rounded-md bg-[#282142] border border-gray-600 text-gray-300 hidden group-hover:block">
-              <p
-                className="cursor-pointer text-sm"
-                onClick={() => navigate("/profile")}
-              >
-                Edit Profile
-              </p>
-              <hr className="my-2 border-t border-gray-500" />
-              <p onClick={() => logout()} className="cursor-pointer text-sm">
-                Logout
-              </p>
-            </div>
+            
+            {showMenu && (
+              <div className="absolute top-full right-0 z-20 w-32 p-5 rounded-md bg-[#282142] border border-gray-600 text-gray-300">
+                <p
+                  className="cursor-pointer text-sm"
+                  onClick={() => {
+                    navigate("/profile");
+                    setShowMenu(false); 
+                  }}
+                >
+                  Edit Profile
+                </p>
+                <hr className="my-2 border-t border-gray-500" />
+                <p
+                  onClick={() => {
+                    logout();
+                    setShowMenu(false); 
+                  }}
+                  className="cursor-pointer text-sm"
+                >
+                  Logout
+                </p>
+              </div>
+            )}
           </div>
         </div>
 
@@ -69,6 +82,7 @@ const Sidebar = () => {
           />
         </div>
       </div>
+      
       <div className="flex flex-col">
         {filteredUsers.map((user, index) => (
           <div
