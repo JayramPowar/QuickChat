@@ -10,11 +10,22 @@ import {Server} from "socket.io";
 const app = express();
 const server = http.createServer(app);
 
-
-//! Initialize socket.io
+//! Initialize socket.io with CORS
 export const io = new Server(server, {
     cors: {
-        origin: "*",
+        origin: function (origin, callback) {
+            // Allow requests with no origin (like mobile apps or curl)
+            if (!origin) return callback(null, true);
+            
+            // Allow any Vercel URL or localhost
+            if (origin.endsWith('.vercel.app') || origin.includes('localhost')) {
+                callback(null, true);
+            } else {
+                callback(new Error('Not allowed by CORS'));
+            }
+        },
+        credentials: true,
+        methods: ["GET", "POST"]
     },
 });
 
@@ -40,41 +51,49 @@ io.on("connection", (socket) => {
     })
 });
 
-
 //! middlewares
 app.use((req, res, next) => {
+  console.log("➡️ INCOMING:", req.method, req.originalUrl);
   next();
 });
 
 app.use(express.json({limit: "15mb"}));
+
+// ✅ CORS Configuration - Allow Vercel deployments
 app.use(cors({
-    origin: [
-        "https://quick-chat-kappa-cyan.vercel.app", // ✅ Your frontend URL
-        "http://localhost:5173", // ✅ For local development
-    ],
+    origin: function (origin, callback) {
+        // Allow requests with no origin (like mobile apps or curl)
+        if (!origin) return callback(null, true);
+        
+        // Allow your frontend domains
+        const allowedOrigins = [
+            "https://quick-chat-kappa-cyan.vercel.app",
+            "http://localhost:5173",
+            "http://localhost:5000"
+        ];
+        
+        // Allow any Vercel preview URL or localhost
+        if (allowedOrigins.includes(origin) || origin.endsWith('.vercel.app') || origin.includes('localhost')) {
+            callback(null, true);
+        } else {
+            callback(new Error('Not allowed by CORS'));
+        }
+    },
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"]
 }));
 
 //! API endpoints
-//! API endpoints
 app.use("/api/status",(req, res) => res.send("Server is live..."));
 app.use("/api/auth", router);
 app.use("/api/messages", msgRouter);
 
-
-
 //? DB connection
 await connectDB();
 
-if(process.env.NODE_ENV === "production"){
-    const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 5000;
 
 server.listen(PORT, () => {
     console.log("Server is running on PORT: "  + PORT);
 });
-}
-
-//required for vercel deployment
-export default server;
