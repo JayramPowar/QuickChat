@@ -47,7 +47,15 @@ app.use((req, res, next) => {
 });
 
 app.use(express.json({limit: "15mb"}));
-app.use(cors());
+app.use(cors({
+    origin: [
+        "https://quick-chat-kappa-cyan.vercel.app", // ✅ Your frontend URL
+        "http://localhost:5173", // ✅ For local development
+    ],
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"]
+}));
 
 //! API endpoints
 //! API endpoints
